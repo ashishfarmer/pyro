@@ -58,6 +58,9 @@ def TemporaryDirectory():
 
 requires_cuda = pytest.mark.skipif(not torch.cuda.is_available(),
                                    reason="cuda is not available")
+rocm_env = torch.cuda.is_available() and (torch.version.hip is not None)
+skipif_rocm = pytest.mark.skipif(rocm_env,
+                                 reason="test not supported on ROCm")
 
 
 def get_cpu_type(t):
