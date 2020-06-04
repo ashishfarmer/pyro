@@ -7,7 +7,7 @@ from torch.distributions import kl_divergence, transforms
 
 import pyro.distributions as dist
 from pyro.distributions.util import sum_rightmost
-from tests.common import assert_close
+from tests.common import assert_close, skipif_rocm
 
 
 @pytest.mark.parametrize('batch_shape', [(), (4,), (2, 3)], ids=str)
@@ -22,6 +22,7 @@ def test_kl_delta_normal_shape(batch_shape):
 
 @pytest.mark.parametrize('batch_shape', [(), (4,), (2, 3)], ids=str)
 @pytest.mark.parametrize('size', [1, 2, 3])
+@skipif_rocm
 def test_kl_delta_mvn_shape(batch_shape, size):
     v = torch.randn(batch_shape + (size,))
     p = dist.Delta(v, event_dim=1)
@@ -47,6 +48,7 @@ def test_kl_independent_normal(batch_shape, event_shape):
 
 @pytest.mark.parametrize('batch_shape', [(), (4,), (2, 3)], ids=str)
 @pytest.mark.parametrize('size', [1, 2, 3])
+@skipif_rocm
 def test_kl_independent_delta_mvn_shape(batch_shape, size):
     v = torch.randn(batch_shape + (size,))
     p = dist.Independent(dist.Delta(v), 1)
@@ -60,6 +62,7 @@ def test_kl_independent_delta_mvn_shape(batch_shape, size):
 
 @pytest.mark.parametrize('batch_shape', [(), (4,), (2, 3)], ids=str)
 @pytest.mark.parametrize('size', [1, 2, 3])
+@skipif_rocm
 def test_kl_independent_normal_mvn(batch_shape, size):
     loc = torch.randn(batch_shape + (size,))
     scale = torch.randn(batch_shape + (size,)).exp()

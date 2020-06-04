@@ -9,7 +9,7 @@ import pyro
 import pyro.distributions as dist
 from pyro.distributions import TorchDistribution
 from pyro.distributions.util import broadcast_shape
-from tests.common import assert_equal, xfail_if_not_implemented
+from tests.common import assert_equal, xfail_if_not_implemented, skipif_rocm
 
 
 def _log_prob_shape(dist, x_size=torch.Size()):
@@ -22,6 +22,7 @@ def _log_prob_shape(dist, x_size=torch.Size()):
 # Distribution tests - all distributions
 
 
+@skipif_rocm
 def test_batch_log_prob(dist):
     if dist.scipy_arg_fn is None:
         pytest.skip('{}.log_prob_sum has no scipy equivalent'.format(dist.pyro_dist.__name__))
@@ -34,6 +35,7 @@ def test_batch_log_prob(dist):
         assert_equal(log_prob_sum_pyro, log_prob_sum_np)
 
 
+@skipif_rocm
 def test_batch_log_prob_shape(dist):
     for idx in range(dist.get_num_test_data()):
         dist_params = dist.get_dist_params(idx)
@@ -46,6 +48,7 @@ def test_batch_log_prob_shape(dist):
             assert log_p_obj.size() == expected_shape
 
 
+@skipif_rocm
 def test_batch_entropy_shape(dist):
     for idx in range(dist.get_num_test_data()):
         dist_params = dist.get_dist_params(idx)
@@ -57,6 +60,7 @@ def test_batch_entropy_shape(dist):
             assert entropy_obj.size() == expected_shape
 
 
+@skipif_rocm
 def test_score_errors_event_dim_mismatch(dist):
     for idx in dist.get_batch_data_indices():
         dist_params = dist.get_dist_params(idx)
@@ -71,6 +75,7 @@ def test_score_errors_event_dim_mismatch(dist):
                 d.log_prob(test_data_wrong_dims)
 
 
+@skipif_rocm
 def test_score_errors_non_broadcastable_data_shape(dist):
     for idx in dist.get_batch_data_indices():
         dist_params = dist.get_dist_params(idx)
@@ -144,6 +149,7 @@ def check_sample_shapes(small, large):
 
 @pytest.mark.parametrize('sample_shape', [(), (2,), (2, 3)])
 @pytest.mark.parametrize('shape_type', [torch.Size, tuple, list])
+@skipif_rocm
 def test_expand_by(dist, sample_shape, shape_type):
     for idx in range(dist.get_num_test_data()):
         small = dist.pyro_dist(**dist.get_dist_params(idx))
@@ -157,6 +163,7 @@ def test_expand_by(dist, sample_shape, shape_type):
 @pytest.mark.parametrize('sample_shape', [(), (2,), (2, 3)])
 @pytest.mark.parametrize('shape_type', [torch.Size, tuple, list])
 @pytest.mark.parametrize('default', [False, True])
+@skipif_rocm
 def test_expand_new_dim(dist, sample_shape, shape_type, default):
     for idx in range(dist.get_num_test_data()):
         small = dist.pyro_dist(**dist.get_dist_params(idx))
@@ -173,6 +180,7 @@ def test_expand_new_dim(dist, sample_shape, shape_type, default):
 
 @pytest.mark.parametrize('shape_type', [torch.Size, tuple, list])
 @pytest.mark.parametrize('default', [False, True])
+@skipif_rocm
 def test_expand_existing_dim(dist, shape_type, default):
     for idx in range(dist.get_num_test_data()):
         small = dist.pyro_dist(**dist.get_dist_params(idx))
@@ -198,6 +206,7 @@ def test_expand_existing_dim(dist, shape_type, default):
     [(2, 1, 1), (2, 1, 3), (2, 5, 3)],
 ])
 @pytest.mark.parametrize('default', [False, True])
+@skipif_rocm
 def test_subsequent_expands_ok(dist, sample_shapes, default):
     for idx in range(dist.get_num_test_data()):
         d = dist.pyro_dist(**dist.get_dist_params(idx))
@@ -221,6 +230,7 @@ def test_subsequent_expands_ok(dist, sample_shapes, default):
     [(1, 2, 1), (2, 1)],
 ])
 @pytest.mark.parametrize("default", [False, True])
+@skipif_rocm
 def test_expand_error(dist, initial_shape, proposed_shape, default):
     for idx in range(dist.get_num_test_data()):
         small = dist.pyro_dist(**dist.get_dist_params(idx))

@@ -9,7 +9,7 @@ from torch.distributions import AffineTransform, Beta, TransformedDistribution, 
 
 from pyro.distributions import constraints, transforms
 from pyro.distributions.lkj import LKJCorrCholesky
-from tests.common import assert_equal, assert_tensors_equal
+from tests.common import assert_equal, assert_tensors_equal, skipif_rocm
 
 
 @pytest.mark.parametrize("value_shape", [(1, 1), (3, 3), (5, 5)])
@@ -28,6 +28,7 @@ def _autograd_log_det(ys, x):
 
 
 @pytest.mark.parametrize("y_shape", [(1,), (3, 1), (6,), (1, 6), (2, 6)])
+@skipif_rocm
 def test_unconstrained_to_corr_cholesky_transform(y_shape):
     transform = transforms.CorrLCholeskyTransform()
     y = torch.empty(y_shape).uniform_(-4, 4).requires_grad_()

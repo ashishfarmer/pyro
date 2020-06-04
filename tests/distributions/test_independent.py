@@ -7,7 +7,7 @@ from torch.distributions.utils import _sum_rightmost
 
 import pyro.distributions as dist
 from pyro.util import torch_isnan
-from tests.common import assert_equal, rocm_env
+from tests.common import assert_equal, rocm_env, skipif_rocm
 
 
 @pytest.mark.parametrize('sample_shape', [(), (6,), (4, 2)])
@@ -90,6 +90,7 @@ def test_to_event(base_dist):
 @pytest.mark.parametrize('event_shape', [(), (2,), (2, 3)])
 @pytest.mark.parametrize('batch_shape', [(), (3,), (5, 3)])
 @pytest.mark.parametrize('sample_shape', [(), (2,), (4, 2)])
+@skipif_rocm
 def test_expand(sample_shape, batch_shape, event_shape):
     ones_shape = torch.Size((1,) * len(batch_shape))
     zero = torch.zeros(ones_shape + event_shape)

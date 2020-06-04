@@ -5,10 +5,11 @@ import pytest
 import torch
 from torch.autograd import grad
 
-from tests.common import assert_equal, requires_cuda, tensors_default_to, xfail_if_not_implemented
+from tests.common import assert_equal, requires_cuda, tensors_default_to, xfail_if_not_implemented, skipif_rocm
 
 
 @requires_cuda
+@skipif_rocm
 def test_sample(dist):
     for idx in range(len(dist.dist_params)):
 
@@ -32,6 +33,7 @@ def test_sample(dist):
 
 
 @requires_cuda
+@skipif_rocm
 def test_rsample(dist):
     if not dist.pyro_dist.has_rsample:
         return
@@ -71,6 +73,7 @@ def test_rsample(dist):
 
 
 @requires_cuda
+@skipif_rocm
 def test_log_prob(dist):
     for idx in range(len(dist.dist_params)):
 
