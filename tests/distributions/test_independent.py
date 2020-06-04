@@ -7,16 +7,17 @@ from torch.distributions.utils import _sum_rightmost
 
 import pyro.distributions as dist
 from pyro.util import torch_isnan
-from tests.common import assert_equal
+from tests.common import assert_equal, rocm_env
 
 
 @pytest.mark.parametrize('sample_shape', [(), (6,), (4, 2)])
 @pytest.mark.parametrize('batch_shape', [(), (7,), (5, 3), (5, 3, 2)])
 @pytest.mark.parametrize('reinterpreted_batch_ndims', [0, 1, 2, 3])
 @pytest.mark.parametrize('base_dist',
+                         [dist.Normal(1., 2.), dist.Exponential(2.)] if rocm_env else
                          [dist.Normal(1., 2.), dist.Exponential(2.),
                           dist.MultivariateNormal(torch.zeros(2), torch.eye(2))],
-                         ids=['normal', 'exponential', 'mvn'])
+                         ids=['normal', 'exponential'] if rocm_env else ['normal', 'exponential', 'mvn'])
 def test_independent(base_dist, sample_shape, batch_shape, reinterpreted_batch_ndims):
     if batch_shape:
         base_dist = base_dist.expand_by(batch_shape)
@@ -42,9 +43,10 @@ def test_independent(base_dist, sample_shape, batch_shape, reinterpreted_batch_n
 
 
 @pytest.mark.parametrize('base_dist',
+                         [dist.Normal(1., 2.), dist.Exponential(2.)] if rocm_env else
                          [dist.Normal(1., 2.), dist.Exponential(2.),
                           dist.MultivariateNormal(torch.zeros(2), torch.eye(2))],
-                         ids=['normal', 'exponential', 'mvn'])
+                         ids=['normal', 'exponential'] if rocm_env else ['normal', 'exponential', 'mvn'])
 def test_to_event(base_dist):
     base_dist = base_dist.expand([2, 3])
     d = base_dist
