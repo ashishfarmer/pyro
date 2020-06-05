@@ -15,7 +15,7 @@ from pyro.ops.gamma_gaussian import (
     matrix_and_mvn_to_gamma_gaussian,
     gamma_and_mvn_to_gamma_gaussian,
 )
-from tests.common import assert_close
+from tests.common import assert_close, skipif_rocm
 from tests.ops.gamma_gaussian import assert_close_gamma_gaussian, random_gamma, random_gamma_gaussian
 from tests.ops.gaussian import random_mvn
 
@@ -118,6 +118,7 @@ def test_add(shape, dim):
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("left", [1, 2, 3])
 @pytest.mark.parametrize("right", [1, 2, 3])
+@skipif_rocm
 def test_marginalize_shape(batch_shape, left, right):
     dim = left + right
     g = random_gamma_gaussian(batch_shape, dim)
@@ -128,6 +129,7 @@ def test_marginalize_shape(batch_shape, left, right):
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("left", [1, 2, 3])
 @pytest.mark.parametrize("right", [1, 2, 3])
+@skipif_rocm
 def test_marginalize(batch_shape, left, right):
     dim = left + right
     g = random_gamma_gaussian(batch_shape, dim)
@@ -142,6 +144,7 @@ def test_marginalize(batch_shape, left, right):
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("left", [1, 2, 3])
 @pytest.mark.parametrize("right", [1, 2, 3])
+@skipif_rocm
 def test_marginalize_condition(sample_shape, batch_shape, left, right):
     dim = left + right
     g = random_gamma_gaussian(batch_shape, dim)
@@ -174,6 +177,7 @@ def test_condition(sample_shape, batch_shape, left, right):
 
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("dim", [1, 2, 3])
+@skipif_rocm
 def test_logsumexp(batch_shape, dim):
     g = random_gamma_gaussian(batch_shape, dim)
     g.info_vec *= 0.1  # approximately centered
@@ -191,6 +195,7 @@ def test_logsumexp(batch_shape, dim):
 @pytest.mark.parametrize("sample_shape", [(), (7,), (6, 5)], ids=str)
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("dim", [1, 2, 3])
+@skipif_rocm
 def test_gamma_and_mvn_to_gamma_gaussian(sample_shape, batch_shape, dim):
     gamma = random_gamma(batch_shape)
     mvn = random_mvn(batch_shape, dim)
@@ -210,6 +215,7 @@ def test_gamma_and_mvn_to_gamma_gaussian(sample_shape, batch_shape, dim):
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("x_dim", [1, 2, 3])
 @pytest.mark.parametrize("y_dim", [1, 2, 3])
+@skipif_rocm
 def test_matrix_and_mvn_to_gamma_gaussian(sample_shape, batch_shape, x_dim, y_dim):
     matrix = torch.randn(batch_shape + (x_dim, y_dim))
     y_mvn = random_mvn(batch_shape, y_dim)
@@ -246,6 +252,7 @@ def test_matrix_and_mvn_to_gamma_gaussian(sample_shape, batch_shape, x_dim, y_di
 @pytest.mark.parametrize("x_rank,y_rank", [
     (1, 1), (4, 1), (1, 4), (4, 4)
 ], ids=str)
+@skipif_rocm
 def test_gamma_gaussian_tensordot(dot_dims,
                                   x_batch_shape, x_dim, x_rank,
                                   y_batch_shape, y_dim, y_rank):

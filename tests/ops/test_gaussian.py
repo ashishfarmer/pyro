@@ -10,7 +10,7 @@ from torch.nn.functional import pad
 import pyro.distributions as dist
 from pyro.distributions.util import broadcast_shape
 from pyro.ops.gaussian import AffineNormal, Gaussian, gaussian_tensordot, matrix_and_mvn_to_gaussian, mvn_to_gaussian
-from tests.common import assert_close
+from tests.common import assert_close, skipif_rocm, skip_param_rocm
 from tests.ops.gaussian import assert_close_gaussian, random_gaussian, random_mvn
 
 
@@ -107,6 +107,7 @@ def test_add(shape, dim):
 @pytest.mark.parametrize("sample_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("dim", [1, 2, 3])
+@skipif_rocm
 def test_rsample_shape(sample_shape, batch_shape, dim):
     mvn = random_mvn(batch_shape, dim)
     g = mvn_to_gaussian(mvn)
@@ -118,6 +119,7 @@ def test_rsample_shape(sample_shape, batch_shape, dim):
 
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("dim", [1, 2, 3])
+@skipif_rocm
 def test_rsample_distribution(batch_shape, dim):
     num_samples = 20000
     mvn = random_mvn(batch_shape, dim)
@@ -143,6 +145,7 @@ def test_rsample_distribution(batch_shape, dim):
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("left", [1, 2, 3])
 @pytest.mark.parametrize("right", [1, 2, 3])
+@skipif_rocm
 def test_marginalize_shape(batch_shape, left, right):
     dim = left + right
     g = random_gaussian(batch_shape, dim)
@@ -153,6 +156,7 @@ def test_marginalize_shape(batch_shape, left, right):
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("left", [1, 2, 3])
 @pytest.mark.parametrize("right", [1, 2, 3])
+@skipif_rocm
 def test_marginalize(batch_shape, left, right):
     dim = left + right
     g = random_gaussian(batch_shape, dim)
@@ -166,6 +170,7 @@ def test_marginalize(batch_shape, left, right):
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("left", [1, 2, 3])
 @pytest.mark.parametrize("right", [1, 2, 3])
+@skipif_rocm
 def test_marginalize_condition(sample_shape, batch_shape, left, right):
     dim = left + right
     g = random_gaussian(batch_shape, dim)
@@ -203,7 +208,7 @@ def test_condition(sample_shape, batch_shape, left, right):
 
 
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
-@pytest.mark.parametrize("dim", [1, 2, 3])
+@pytest.mark.parametrize("dim", [1, skip_param_rocm(2), skip_param_rocm(3)])
 def test_logsumexp(batch_shape, dim):
     gaussian = random_gaussian(batch_shape, dim)
     gaussian.info_vec *= 0.1  # approximately centered
@@ -220,6 +225,7 @@ def test_logsumexp(batch_shape, dim):
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("x_dim", [1, 2, 3])
 @pytest.mark.parametrize("y_dim", [1, 2, 3])
+@skipif_rocm
 def test_affine_normal(batch_shape, x_dim, y_dim):
     matrix = torch.randn(batch_shape + (x_dim, y_dim))
     loc = torch.randn(batch_shape + (y_dim,))
@@ -258,6 +264,7 @@ def test_affine_normal(batch_shape, x_dim, y_dim):
 @pytest.mark.parametrize("sample_shape", [(), (7,), (6, 5)], ids=str)
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("dim", [1, 2, 3])
+@skipif_rocm
 def test_mvn_to_gaussian(sample_shape, batch_shape, dim):
     mvn = random_mvn(batch_shape, dim)
     gaussian = mvn_to_gaussian(mvn)
@@ -271,6 +278,7 @@ def test_mvn_to_gaussian(sample_shape, batch_shape, dim):
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("x_dim", [1, 2, 3])
 @pytest.mark.parametrize("y_dim", [1, 2, 3])
+@skipif_rocm
 def test_matrix_and_mvn_to_gaussian(sample_shape, batch_shape, x_dim, y_dim):
     matrix = torch.randn(batch_shape + (x_dim, y_dim))
     y_mvn = random_mvn(batch_shape, y_dim)
@@ -288,6 +296,7 @@ def test_matrix_and_mvn_to_gaussian(sample_shape, batch_shape, x_dim, y_dim):
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("x_dim", [1, 2, 3])
 @pytest.mark.parametrize("y_dim", [1, 2, 3])
+@skipif_rocm
 def test_matrix_and_mvn_to_gaussian_2(sample_shape, batch_shape, x_dim, y_dim):
     matrix = torch.randn(batch_shape + (x_dim, y_dim))
     y_mvn = random_mvn(batch_shape, y_dim)
@@ -322,6 +331,7 @@ def test_matrix_and_mvn_to_gaussian_2(sample_shape, batch_shape, x_dim, y_dim):
 @pytest.mark.parametrize("x_rank,y_rank", [
     (1, 1), (4, 1), (1, 4), (4, 4)
 ], ids=str)
+@skipif_rocm
 def test_gaussian_tensordot(dot_dims,
                             x_batch_shape, x_dim, x_rank,
                             y_batch_shape, y_dim, y_rank):

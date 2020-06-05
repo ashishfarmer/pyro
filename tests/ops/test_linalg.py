@@ -5,7 +5,7 @@ import pytest
 import torch
 
 from pyro.ops.linalg import rinverse
-from tests.common import assert_equal
+from tests.common import assert_equal, skipif_rocm
 
 
 @pytest.mark.parametrize("A", [
@@ -17,6 +17,7 @@ from tests.common import assert_equal
     torch.eye(40)
     ])
 @pytest.mark.parametrize("use_sym", [True, False])
+@skipif_rocm
 def test_sym_rinverse(A, use_sym):
     d = A.shape[-1]
     assert_equal(rinverse(A, sym=use_sym), torch.inverse(A), prec=1e-8)

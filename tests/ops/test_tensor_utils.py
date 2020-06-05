@@ -12,7 +12,7 @@ import pyro
 from pyro.ops.tensor_utils import (block_diag_embed, block_diagonal, convolve, dct, idct, next_fast_len,
                                    periodic_cumsum, periodic_features, periodic_repeat, precision_to_scale_tril,
                                    repeated_matmul)
-from tests.common import assert_close, assert_equal
+from tests.common import assert_close, assert_equal, skipif_rocm
 
 pytestmark = pytest.mark.stage('unit')
 
@@ -162,6 +162,7 @@ def test_next_fast_len():
     ((), (5,)),
     ((3,), (4,)),
 ])
+@skipif_rocm
 def test_precision_to_scale_tril(batch_shape, event_shape):
     x = torch.randn(batch_shape + event_shape + event_shape)
     precision = x.matmul(x.transpose(-2, -1))
