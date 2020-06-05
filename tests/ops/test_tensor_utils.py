@@ -93,7 +93,7 @@ def test_convolve_shape(m, n, mode):
     signal = torch.randn(m)
     kernel = torch.randn(n)
     actual = convolve(signal, kernel, mode)
-    expected = np.convolve(signal, kernel, mode=mode)
+    expected = np.convolve(signal.cpu(), kernel.cpu(), mode=mode)
     assert actual.shape == expected.shape
 
 
@@ -106,7 +106,7 @@ def test_convolve(batch_shape, m, n, mode):
     kernel = torch.randn(*batch_shape, n)
     actual = convolve(signal, kernel, mode)
     expected = torch.stack([
-        torch.tensor(np.convolve(s, k, mode=mode))
+        torch.tensor(np.convolve(s.cpu(), k.cpu(), mode=mode))
         for s, k in zip(signal.reshape(-1, m), kernel.reshape(-1, n))
     ]).reshape(*batch_shape, -1)
     assert_close(actual, expected)
@@ -129,7 +129,7 @@ def test_repeated_matmul(size, n):
 def test_dct(shape):
     x = torch.randn(shape)
     actual = dct(x)
-    expected = torch.from_numpy(fftpack.dct(x.numpy(), norm='ortho'))
+    expected = torch.from_numpy(fftpack.dct(x.cpu().numpy(), norm='ortho'))
     assert_close(actual, expected)
 
 
@@ -137,7 +137,7 @@ def test_dct(shape):
 def test_idct(shape):
     x = torch.randn(shape)
     actual = idct(x)
-    expected = torch.from_numpy(fftpack.idct(x.numpy(), norm='ortho'))
+    expected = torch.from_numpy(fftpack.idct(x.cpu().numpy(), norm='ortho'))
     assert_close(actual, expected)
 
 
