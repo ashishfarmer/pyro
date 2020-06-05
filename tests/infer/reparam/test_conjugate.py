@@ -12,7 +12,7 @@ from pyro.infer.autoguide import AutoDiagonalNormal
 from pyro.infer.mcmc.api import MCMC
 from pyro.infer.mcmc.hmc import HMC
 from pyro.infer.reparam import ConjugateReparam, LinearHMMReparam, StableReparam
-from tests.common import assert_close
+from tests.common import assert_close, skipif_rocm, rocm_env
 from tests.ops.gaussian import random_mvn
 
 
@@ -65,6 +65,7 @@ def test_beta_binomial_dependent_sample():
     assert_close(samples.std(), posterior.variance.sqrt(), atol=0.01)
 
 
+@pytest.mark.skipif(rocm_env, reason="nan in output on ROCm")
 def test_beta_binomial_elbo():
     total = 10
     counts = dist.Binomial(total, 0.3).sample()
@@ -102,6 +103,7 @@ def test_beta_binomial_elbo():
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("hidden_dim,obs_dim", [(1, 1), (3, 2)], ids=str)
 @pytest.mark.parametrize("num_steps", range(1, 6))
+@skipif_rocm
 def test_gaussian_hmm_elbo(batch_shape, num_steps, hidden_dim, obs_dim):
     init_dist = random_mvn(batch_shape, hidden_dim)
     trans_mat = torch.randn(batch_shape + (num_steps, hidden_dim, hidden_dim), requires_grad=True)
@@ -152,6 +154,7 @@ def random_stable(shape):
 @pytest.mark.parametrize("batch_shape", [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize("hidden_dim,obs_dim", [(1, 1), (2, 3)], ids=str)
 @pytest.mark.parametrize("num_steps", range(1, 6))
+@skipif_rocm
 def test_stable_hmm_smoke(batch_shape, num_steps, hidden_dim, obs_dim):
     init_dist = random_stable(batch_shape + (hidden_dim,)).to_event(1)
     trans_mat = torch.randn(batch_shape + (num_steps, hidden_dim, hidden_dim), requires_grad=True)

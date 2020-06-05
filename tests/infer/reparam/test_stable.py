@@ -13,7 +13,7 @@ from pyro.distributions.torch_distribution import MaskedDistribution
 from pyro.infer import Trace_ELBO
 from pyro.infer.autoguide import AutoNormal
 from pyro.infer.reparam import LatentStableReparam, StableReparam, SymmetricStableReparam
-from tests.common import assert_close
+from tests.common import assert_close, rocm_env
 
 
 # Test helper to extract a few absolute moments from univariate samples.
@@ -26,6 +26,7 @@ def get_moments(x):
 
 @pytest.mark.parametrize("shape", [(), (4,), (2, 3)], ids=str)
 @pytest.mark.parametrize("Reparam", [LatentStableReparam, StableReparam])
+@pytest.mark.skipif(rocm_env, reason="test fails on ROCm")
 def test_stable(Reparam, shape):
     stability = torch.empty(shape).uniform_(1.5, 2.).requires_grad_()
     skew = torch.empty(shape).uniform_(-0.5, 0.5).requires_grad_()
@@ -67,6 +68,7 @@ def test_stable(Reparam, shape):
 
 
 @pytest.mark.parametrize("shape", [(), (4,), (2, 3)], ids=str)
+@pytest.mark.skipif(rocm_env, reason="test fails on ROCm")
 def test_symmetric_stable(shape):
     stability = torch.empty(shape).uniform_(1.6, 1.9).requires_grad_()
     scale = torch.empty(shape).uniform_(0.5, 1.0).requires_grad_()
