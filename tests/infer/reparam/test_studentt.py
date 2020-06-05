@@ -64,4 +64,4 @@ def test_distribution(df, loc, scale):
     expected = model()
     with poutine.reparam(config={"x": StudentTReparam()}):
         actual = model()
-    assert ks_2samp(expected, actual).pvalue > 0.05
+    assert ks_2samp(expected.cpu(), actual.cpu()).pvalue > 0.05
