@@ -113,7 +113,7 @@ def test_distribution(stability, skew, Reparam):
     expected = model()
     with poutine.reparam(config={"x": Reparam()}):
         actual = model()
-    assert ks_2samp(expected, actual).pvalue > 0.05
+    assert ks_2samp(expected.cpu(), actual.cpu()).pvalue > 0.05
 
 
 @pytest.mark.parametrize("subsample", [False, True], ids=["full", "subsample"])
