@@ -63,6 +63,11 @@ skipif_rocm = pytest.mark.skipif(rocm_env,
                                  reason="test not supported on ROCm")
 
 
+def skip_param_rocm(*args):
+    return skipif_param(*args, condition=("CUDA_TEST" in os.environ) and rocm_env,
+                        reason="parameter not supported on rocm")
+
+
 def get_cpu_type(t):
     assert t.__module__ == 'torch.cuda'
     return getattr(torch, t.__class__.__name__)
