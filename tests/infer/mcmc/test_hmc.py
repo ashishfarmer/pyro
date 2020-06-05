@@ -13,7 +13,7 @@ import pyro.distributions as dist
 from pyro.infer.mcmc import NUTS
 from pyro.infer.mcmc.hmc import HMC
 from pyro.infer.mcmc.api import MCMC
-from tests.common import assert_equal, assert_close
+from tests.common import assert_equal, assert_close, rocm_env, skipif_rocm
 
 logger = logging.getLogger(__name__)
 
@@ -171,6 +171,7 @@ def test_hmc_conjugate_gaussian(fixture,
         (None, 1, None, True, True, True),
     ]
 )
+@pytest.mark.skipif(condition=rocm_env, reason="test fails on ROCm")
 def test_logistic_regression(step_size, trajectory_length, num_steps,
                              adapt_step_size, adapt_mass_matrix, full_mass):
     dim = 3
@@ -304,6 +305,7 @@ def test_unnormalized_normal(kernel, jit):
 
 @pytest.mark.parametrize('jit', [False, mark_jit(True)], ids=jit_idfn)
 @pytest.mark.parametrize('op', [torch.inverse, torch.cholesky])
+@skipif_rocm
 def test_singular_matrix_catch(jit, op):
     def potential_energy(z):
         return op(z['cov']).sum()
