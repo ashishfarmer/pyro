@@ -228,7 +228,7 @@ class GaussianPyramidTests(TestCase):
             permutation = list(range(2 ** (n - 1)))
             if n > 1:
                 while permutation == list(range(2 ** (n - 1))):
-                    permutation = torch.randperm(2 ** (n - 1)).numpy().tolist()
+                    permutation = torch.randperm(2 ** (n - 1)).cpu().numpy().tolist()
             self.model_permutations.append(permutation)
 
             unpermutation = list(range(len(permutation)))
