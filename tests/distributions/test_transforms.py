@@ -8,6 +8,7 @@ import torch
 
 import pyro.distributions as dist
 import pyro.distributions.transforms as T
+from tests.common import skipif_rocm
 
 from functools import partial, reduce
 import operator
@@ -140,10 +141,12 @@ class TransformTests(TestCase):
         for stable in [True, False]:
             self._test(partial(T.affine_autoregressive, stable=stable))
 
+    @skipif_rocm
     def test_affine_coupling(self):
         for dim in [-1, -2]:
             self._test(partial(T.affine_coupling, dim=dim), event_dim=-dim)
 
+    @skipif_rocm
     def test_batchnorm(self):
         # Need to make moving average statistics non-zeros/ones and set to eval so inverse is valid
         # (see the docs about the differing behaviour of BatchNorm in train and eval modes)
@@ -165,10 +168,12 @@ class TransformTests(TestCase):
     def test_conditional_affine_autoregressive(self):
         self._test_conditional(T.conditional_affine_autoregressive)
 
+    @skipif_rocm
     def test_conditional_affine_coupling(self):
         for dim in [-1, -2]:
             self._test_conditional(partial(T.conditional_affine_coupling, dim=dim), event_dim=-dim)
 
+    @skipif_rocm
     def test_conditional_generalized_channel_permute(self, context_dim=3):
         for shape in [(3, 16, 16), (1, 3, 32, 32), (2, 5, 3, 64, 64)]:
             # NOTE: Without changing the interface to generalized_channel_permute I can't reuse general
@@ -182,6 +187,7 @@ class TransformTests(TestCase):
             input_dim = (width_dim**2) * 3
             self._test_jacobian(input_dim, Flatten(transform, (3, width_dim, width_dim)))
 
+    @skipif_rocm
     def test_conditional_householder(self):
         self._test_conditional(T.conditional_householder)
         self._test_conditional(partial(T.conditional_householder, count_transforms=2))
@@ -189,12 +195,15 @@ class TransformTests(TestCase):
     def test_conditional_neural_autoregressive(self):
         self._test_conditional(T.conditional_neural_autoregressive, inverse=False)
 
+    @skipif_rocm
     def test_conditional_planar(self):
         self._test_conditional(T.conditional_planar, inverse=False)
 
+    @skipif_rocm
     def test_conditional_radial(self):
         self._test_conditional(T.conditional_radial, inverse=False)
 
+    @skipif_rocm
     def test_discrete_cosine(self):
         # NOTE: Need following since helper function unimplemented
         self._test(lambda input_dim: T.DiscreteCosineTransform())
@@ -202,15 +211,18 @@ class TransformTests(TestCase):
         self._test(lambda input_dim: T.DiscreteCosineTransform(smooth=1.0))
         self._test(lambda input_dim: T.DiscreteCosineTransform(smooth=2.0))
 
+    @skipif_rocm
     def test_haar_transform(self):
         # NOTE: Need following since helper function unimplemented
         self._test(lambda input_dim: T.HaarTransform(flip=True))
         self._test(lambda input_dim: T.HaarTransform(flip=False))
 
+    @skipif_rocm
     def test_elu(self):
         # NOTE: Need following since helper function mistakenly doesn't take input dim
         self._test(lambda input_dim: T.elu())
 
+    @skipif_rocm
     def test_generalized_channel_permute(self):
         for shape in [(3, 16, 16), (1, 3, 32, 32), (2, 5, 3, 64, 64)]:
             # NOTE: Without changing the interface to generalized_channel_permute I can't reuse general
@@ -223,13 +235,16 @@ class TransformTests(TestCase):
             input_dim = (width_dim**2) * 3
             self._test_jacobian(input_dim, Flatten(transform, (3, width_dim, width_dim)))
 
+    @skipif_rocm
     def test_householder(self):
         self._test(partial(T.householder, count_transforms=2))
 
+    @skipif_rocm
     def test_leaky_relu(self):
         # NOTE: Need following since helper function mistakenly doesn't take input dim
         self._test(lambda input_dim: T.leaky_relu())
 
+    @skipif_rocm
     def test_lower_cholesky_affine(self):
         # NOTE: Need following since helper function unimplemented
         def transform_factory(input_dim):
@@ -240,25 +255,32 @@ class TransformTests(TestCase):
 
         self._test(transform_factory)
 
+    @skipif_rocm
     def test_neural_autoregressive(self):
         for activation in ['ELU', 'LeakyReLU', 'sigmoid', 'tanh']:
             self._test(partial(T.neural_autoregressive, activation=activation), inverse=False)
 
+    @skipif_rocm
     def test_permute(self):
         for dim in [-1, -2]:
             self._test(partial(T.permute, dim=dim), event_dim=-dim)
 
+    @skipif_rocm
     def test_planar(self):
         self._test(T.planar, inverse=False)
 
+    @skipif_rocm
     def test_polynomial(self):
         self._test(T.polynomial, inverse=False)
 
+    @skipif_rocm
     def test_radial(self):
         self._test(T.radial, inverse=False)
 
+    @skipif_rocm
     def test_spline(self):
         self._test(T.spline)
 
+    @skipif_rocm
     def test_sylvester(self):
         self._test(T.sylvester, inverse=False)

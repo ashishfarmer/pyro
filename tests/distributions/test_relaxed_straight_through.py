@@ -11,7 +11,7 @@ import pyro.optim as optim
 from pyro.distributions import (OneHotCategorical, RelaxedBernoulli, RelaxedBernoulliStraightThrough,
                                 RelaxedOneHotCategorical, RelaxedOneHotCategoricalStraightThrough)
 from pyro.infer import SVI, Trace_ELBO
-from tests.common import assert_equal
+from tests.common import assert_equal, rocm_env
 
 ONEHOT_PROBS = [
                 [0.25, 0.75],
@@ -57,6 +57,7 @@ def test_onehot_entropy_grad(temp):
                  format(expected, actual))
 
 
+@pytest.mark.skipif(rocm_env, reason="test fails on ROCm")
 def test_onehot_svi_usage():
 
     def model():

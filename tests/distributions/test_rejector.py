@@ -9,7 +9,7 @@ from pyro.distributions import Exponential, Gamma
 from pyro.distributions.testing.rejection_exponential import RejectionExponential
 from pyro.distributions.testing.rejection_gamma import (RejectionGamma, RejectionStandardGamma, ShapeAugmentedBeta,
                                                         ShapeAugmentedGamma)
-from tests.common import assert_equal
+from tests.common import assert_equal, rocm_env
 
 SIZES = list(map(torch.Size, [[], [1], [2], [3], [1, 1], [1, 2], [2, 3, 4]]))
 
@@ -79,6 +79,7 @@ def test_exponential_elbo(rate, factor):
 
 
 @pytest.mark.parametrize('alpha', [1.0, 2.0, 5.0])
+@pytest.mark.skipif(rocm_env, reason="test fails on ROCm")
 def test_standard_gamma_elbo(alpha):
     num_samples = 100000
     alphas = torch.full((num_samples, 1), alpha).requires_grad_()

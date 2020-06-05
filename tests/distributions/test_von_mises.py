@@ -9,7 +9,7 @@ import torch
 from torch import optim
 
 from pyro.distributions import VonMises, VonMises3D
-from tests.common import skipif_param
+from tests.common import skipif_param, rocm_env
 
 
 def _eval_poly(y, coef):
@@ -108,6 +108,7 @@ def test_log_prob_normalized(concentration):
 
 
 @pytest.mark.parametrize('scale', [0.1, 0.5, 0.9, 1.0, 1.1, 2.0, 10.0])
+@pytest.mark.skipif(rocm_env, reason="test fails on ROCm")
 def test_von_mises_3d(scale):
     concentration = torch.randn(3)
     concentration = concentration * (scale / concentration.norm(2))

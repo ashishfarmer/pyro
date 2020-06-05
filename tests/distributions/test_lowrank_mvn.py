@@ -4,9 +4,10 @@
 import torch
 
 from pyro.distributions import LowRankMultivariateNormal, MultivariateNormal
-from tests.common import assert_equal
+from tests.common import assert_equal, skipif_rocm
 
 
+@skipif_rocm
 def test_scale_tril():
     loc = torch.tensor([1.0, 2.0, 1.0, 2.0, 0.0])
     D = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0])
@@ -19,6 +20,7 @@ def test_scale_tril():
     assert_equal(mvn.scale_tril, lowrank_mvn.scale_tril)
 
 
+@skipif_rocm
 def test_log_prob():
     loc = torch.tensor([2.0, 1.0, 1.0, 2.0, 2.0])
     D = torch.tensor([1.0, 2.0, 3.0, 1.0, 3.0])
@@ -32,6 +34,7 @@ def test_log_prob():
     assert_equal(mvn.log_prob(x), lowrank_mvn.log_prob(x))
 
 
+@skipif_rocm
 def test_variance():
     loc = torch.tensor([1.0, 1.0, 1.0, 2.0, 0.0])
     D = torch.tensor([1.0, 2.0, 2.0, 4.0, 5.0])

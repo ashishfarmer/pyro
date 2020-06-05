@@ -7,7 +7,7 @@ import torch
 import pyro.distributions as dist
 from pyro.distributions.util import broadcast_shape
 from pyro.util import torch_isnan
-from tests.common import assert_equal
+from tests.common import assert_equal, skipif_rocm
 
 
 @pytest.mark.parametrize('sample_shape', [(), (6,), (4, 2)])
@@ -45,6 +45,7 @@ def test_masked_mixture_univariate(component0, component1, sample_shape, batch_s
 
 @pytest.mark.parametrize('sample_shape', [(), (6,), (4, 2)])
 @pytest.mark.parametrize('batch_shape', [(), (7,), (5, 3)])
+@skipif_rocm
 def test_masked_mixture_multivariate(sample_shape, batch_shape):
     event_shape = torch.Size((8,))
     component0 = dist.MultivariateNormal(torch.zeros(event_shape), torch.eye(event_shape[0]))
