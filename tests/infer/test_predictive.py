@@ -10,7 +10,7 @@ import pyro.optim as optim
 import pyro.poutine as poutine
 from pyro.infer.autoguide import AutoDelta, AutoDiagonalNormal
 from pyro.infer import Predictive, SVI, Trace_ELBO
-from tests.common import assert_close
+from tests.common import assert_close, rocm_env
 
 
 def model(num_trials):
@@ -36,6 +36,7 @@ def beta_guide(num_trials):
 
 
 @pytest.mark.parametrize("parallel", [False, True])
+@pytest.mark.skipif(rocm_env, reason="parameter invalid values on ROCm")
 def test_posterior_predictive_svi_manual_guide(parallel):
     true_probs = torch.ones(5) * 0.7
     num_trials = torch.ones(5) * 1000

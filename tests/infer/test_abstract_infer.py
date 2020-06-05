@@ -11,7 +11,7 @@ import pyro.poutine as poutine
 from pyro.infer.autoguide import AutoLaplaceApproximation
 from pyro.infer import SVI, Trace_ELBO
 from pyro.infer.mcmc import MCMC, NUTS
-from tests.common import assert_equal
+from tests.common import assert_equal, skipif_rocm
 
 
 pytestmark = pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")
@@ -43,6 +43,7 @@ def test_nesting():
 
 # TODO: Make this available directly in `SVI` if needed.
 @pytest.mark.filterwarnings('ignore::FutureWarning')
+@skipif_rocm
 def test_information_criterion():
     # milk dataset: https://github.com/rmcelreath/rethinking/blob/master/data/milk.csv
     kcal = torch.tensor([0.49, 0.47, 0.56, 0.89, 0.92, 0.8, 0.46, 0.71, 0.68,

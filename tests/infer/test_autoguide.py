@@ -25,14 +25,14 @@ from pyro.nn.module import PyroModule, PyroParam, PyroSample
 from pyro.optim import Adam
 from pyro.poutine.util import prune_subsample_sites
 from pyro.util import check_model_guide_match
-from tests.common import assert_close, assert_equal
+from tests.common import assert_close, assert_equal, skip_param_rocm, skipif_rocm
 
 
 @pytest.mark.parametrize("auto_class", [
     AutoDiagonalNormal,
-    AutoMultivariateNormal,
+    skip_param_rocm(AutoMultivariateNormal),
     AutoNormal,
-    AutoLowRankMultivariateNormal,
+    skip_param_rocm(AutoLowRankMultivariateNormal),
     AutoIAFNormal,
 ])
 def test_scores(auto_class):
@@ -61,9 +61,9 @@ def test_scores(auto_class):
 @pytest.mark.parametrize("auto_class", [
     AutoDelta,
     AutoDiagonalNormal,
-    AutoMultivariateNormal,
+    skip_param_rocm(AutoMultivariateNormal),
     AutoNormal,
-    AutoLowRankMultivariateNormal,
+    skip_param_rocm(AutoLowRankMultivariateNormal),
     AutoIAFNormal,
     AutoLaplaceApproximation,
 ])
@@ -105,6 +105,7 @@ def test_factor(auto_class, Elbo):
     AutoLaplaceApproximation,
 ])
 @pytest.mark.filterwarnings("ignore::FutureWarning")
+@skipif_rocm
 def test_shapes(auto_class, init_loc_fn, Elbo):
 
     def model():
@@ -206,10 +207,10 @@ def nested_auto_guide_callable(model):
 @pytest.mark.parametrize("auto_class", [
     AutoDelta,
     AutoDiagonalNormal,
-    AutoMultivariateNormal,
+    skip_param_rocm(AutoMultivariateNormal),
     AutoNormal,
-    AutoLowRankMultivariateNormal,
-    AutoLaplaceApproximation,
+    skip_param_rocm(AutoLowRankMultivariateNormal),
+    skip_param_rocm(AutoLaplaceApproximation),
     auto_guide_list_x,
     auto_guide_callable,
     auto_guide_module_callable,
@@ -249,10 +250,10 @@ def test_median(auto_class, Elbo):
 @pytest.mark.parametrize("auto_class", [
     AutoDelta,
     AutoDiagonalNormal,
-    AutoMultivariateNormal,
+    skip_param_rocm(AutoMultivariateNormal),
     AutoNormal,
-    AutoLowRankMultivariateNormal,
-    AutoLaplaceApproximation,
+    skip_param_rocm(AutoLowRankMultivariateNormal),
+    skip_param_rocm(AutoLaplaceApproximation),
     auto_guide_list_x,
     auto_guide_module_callable,
     nested_auto_guide_callable,
@@ -305,10 +306,10 @@ def test_autoguide_serialization(auto_class, Elbo):
 
 @pytest.mark.parametrize("auto_class", [
     AutoDiagonalNormal,
-    AutoMultivariateNormal,
+    skip_param_rocm(AutoMultivariateNormal),
     AutoNormal,
-    AutoLowRankMultivariateNormal,
-    AutoLaplaceApproximation,
+    skip_param_rocm(AutoLowRankMultivariateNormal),
+    skip_param_rocm(AutoLaplaceApproximation),
 ])
 @pytest.mark.parametrize("Elbo", [Trace_ELBO, TraceGraph_ELBO, TraceEnum_ELBO])
 def test_quantiles(auto_class, Elbo):
@@ -354,11 +355,11 @@ def test_quantiles(auto_class, Elbo):
 @pytest.mark.parametrize("continuous_class", [
     AutoDelta,
     AutoDiagonalNormal,
-    AutoMultivariateNormal,
+    skip_param_rocm(AutoMultivariateNormal),
     AutoNormal,
-    AutoLowRankMultivariateNormal,
+    skip_param_rocm(AutoLowRankMultivariateNormal),
     AutoIAFNormal,
-    AutoLaplaceApproximation,
+    skip_param_rocm(AutoLaplaceApproximation),
 ])
 def test_discrete_parallel(continuous_class):
     K = 2
@@ -392,6 +393,7 @@ def test_discrete_parallel(continuous_class):
     AutoIAFNormal,
     AutoLaplaceApproximation,
 ])
+@skipif_rocm
 def test_guide_list(auto_class):
 
     def model():
@@ -412,6 +414,7 @@ def test_guide_list(auto_class):
     AutoLowRankMultivariateNormal,
     AutoLaplaceApproximation,
 ])
+@skipif_rocm
 def test_callable(auto_class):
 
     def model():
@@ -437,6 +440,7 @@ def test_callable(auto_class):
     AutoLowRankMultivariateNormal,
     AutoLaplaceApproximation,
 ])
+@skipif_rocm
 def test_callable_return_dict(auto_class):
 
     def model():
@@ -479,6 +483,7 @@ def test_unpack_latent():
     AutoMultivariateNormal,
     AutoLowRankMultivariateNormal,
 ])
+@skipif_rocm
 def test_init_loc_fn(auto_class):
 
     def model():
@@ -510,6 +515,7 @@ class AutoLowRankMultivariateNormal_100(AutoLowRankMultivariateNormal):
     AutoLowRankMultivariateNormal,
     AutoLowRankMultivariateNormal_100,
 ])
+@skipif_rocm
 def test_init_scale(auto_class, init_scale):
 
     def model():
@@ -528,9 +534,9 @@ def test_init_scale(auto_class, init_scale):
 @pytest.mark.parametrize("auto_class", [
     AutoDelta,
     AutoDiagonalNormal,
-    AutoMultivariateNormal,
-    AutoLowRankMultivariateNormal,
-    AutoLaplaceApproximation,
+    skip_param_rocm(AutoMultivariateNormal),
+    skip_param_rocm(AutoLowRankMultivariateNormal),
+    skip_param_rocm(AutoLaplaceApproximation),
     auto_guide_list_x,
     auto_guide_callable,
     auto_guide_module_callable,
@@ -606,9 +612,9 @@ def test_nested_autoguide(Elbo):
 @pytest.mark.parametrize("auto_class", [
     AutoDelta,
     AutoDiagonalNormal,
-    AutoMultivariateNormal,
+    skip_param_rocm(AutoMultivariateNormal),
     AutoNormal,
-    AutoLowRankMultivariateNormal,
+    skip_param_rocm(AutoLowRankMultivariateNormal),
     AutoLaplaceApproximation,
     functools.partial(AutoDiagonalNormal, init_loc_fn=init_to_mean),
     functools.partial(AutoDiagonalNormal, init_loc_fn=init_to_median),
@@ -644,9 +650,9 @@ def test_linear_regression_smoke(auto_class, Elbo):
 @pytest.mark.parametrize("auto_class", [
     AutoDelta,
     AutoDiagonalNormal,
-    AutoMultivariateNormal,
+    skip_param_rocm(AutoMultivariateNormal),
     AutoNormal,
-    AutoLowRankMultivariateNormal,
+    skip_param_rocm(AutoLowRankMultivariateNormal),
     AutoLaplaceApproximation,
     functools.partial(AutoDiagonalNormal, init_loc_fn=init_to_mean),
     functools.partial(AutoDiagonalNormal, init_loc_fn=init_to_median),

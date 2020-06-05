@@ -9,7 +9,7 @@ import pyro.distributions as dist
 import pyro.poutine as poutine
 from pyro.infer import SMCFilter
 from pyro.infer.smcfilter import _systematic_sample
-from tests.common import assert_close
+from tests.common import assert_close, skipif_rocm
 
 
 @pytest.mark.parametrize("size", range(1, 32))
@@ -79,6 +79,7 @@ class SmokeGuide:
 @pytest.mark.parametrize("state_size", [2, 5, 1])
 @pytest.mark.parametrize("plate_size", [3, 7, 1])
 @pytest.mark.parametrize("num_steps", [1, 2, 10])
+@skipif_rocm
 def test_smoke(max_plate_nesting, state_size, plate_size, num_steps):
     model = SmokeModel(state_size, plate_size)
     guide = SmokeGuide(state_size, plate_size)
@@ -195,6 +196,7 @@ def test_likelihood_ratio():
     assert(score_latent(zs_pred, ys_true) > score_latent(zs, ys_true))
 
 
+@skipif_rocm
 def test_gaussian_filter():
     dim = 4
     init_dist = dist.MultivariateNormal(torch.zeros(dim), scale_tril=torch.eye(dim) * 10)

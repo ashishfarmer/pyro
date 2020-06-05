@@ -15,7 +15,7 @@ from pyro.distributions.testing import fakes
 from pyro.infer import (SVI, JitTrace_ELBO, JitTraceEnum_ELBO, JitTraceGraph_ELBO, JitTraceMeanField_ELBO, Trace_ELBO,
                         TraceEnum_ELBO, TraceGraph_ELBO, TraceMeanField_ELBO, config_enumerate)
 from pyro.optim import Adam
-from tests.common import assert_equal, xfail_if_not_implemented, xfail_param
+from tests.common import assert_equal, xfail_if_not_implemented, xfail_param, skipif_rocm
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +37,7 @@ def DiffTrace_ELBO(*args, **kwargs):
     (TraceEnum_ELBO, False),
     (TraceEnum_ELBO, True),
 ])
+@skipif_rocm
 def test_subsample_gradient(Elbo, reparameterized, has_rsample, subsample, local_samples, scale):
     pyro.clear_param_store()
     data = torch.tensor([-0.5, 2.0])
@@ -140,6 +141,7 @@ def test_plate(Elbo, reparameterized):
 
 @pytest.mark.parametrize("reparameterized", [True, False], ids=["reparam", "nonreparam"])
 @pytest.mark.parametrize("Elbo", [Trace_ELBO, DiffTrace_ELBO, TraceGraph_ELBO, TraceEnum_ELBO])
+@skipif_rocm
 def test_plate_elbo_vectorized_particles(Elbo, reparameterized):
     pyro.clear_param_store()
     data = torch.tensor([-0.5, 2.0])
