@@ -5,7 +5,7 @@ import pytest
 import torch
 
 from pyro.distributions import MultivariateNormal
-from tests.common import assert_equal
+from tests.common import assert_equal, skipif_rocm
 
 
 def random_mvn(loc_shape, cov_shape, dim):
@@ -28,6 +28,7 @@ def random_mvn(loc_shape, cov_shape, dim):
 @pytest.mark.parametrize('dim', [
     1, 3, 5,
 ])
+@skipif_rocm
 def test_shape(loc_shape, cov_shape, dim):
     mvn = random_mvn(loc_shape, cov_shape, dim)
     assert mvn.loc.shape == mvn.batch_shape + mvn.event_shape

@@ -17,7 +17,7 @@ from pyro.infer import config_enumerate
 from pyro.infer.importance import vectorized_importance_weights
 from pyro.infer.tracetmc_elbo import TraceTMC_ELBO
 from pyro.infer.traceenum_elbo import TraceEnum_ELBO
-from tests.common import assert_equal
+from tests.common import assert_equal, skip_param_rocm
 
 
 logger = logging.getLogger(__name__)
@@ -142,7 +142,7 @@ def test_tmc_normals_chain_iwae(depth, num_samples, max_plate_nesting,
 @pytest.mark.parametrize("num_samples,expand", [(200, False)])
 @pytest.mark.parametrize("max_plate_nesting", [0])
 @pytest.mark.parametrize("guide_type", ["prior", "factorized", "nonfactorized"])
-@pytest.mark.parametrize("reparameterized", [False, True])
+@pytest.mark.parametrize("reparameterized", [skip_param_rocm(False), True])
 @pytest.mark.parametrize("tmc_strategy", ["diagonal", "mixture"])
 def test_tmc_normals_chain_gradient(depth, num_samples, max_plate_nesting, expand,
                                     guide_type, reparameterized, tmc_strategy):

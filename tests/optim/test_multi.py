@@ -10,7 +10,7 @@ import pyro.distributions as dist
 import pyro.optim
 import pyro.poutine as poutine
 from pyro.optim.multi import MixedMultiOptimizer, Newton, PyroMultiOptimizer, TorchMultiOptimizer
-from tests.common import assert_equal
+from tests.common import assert_equal, skipif_rocm
 
 FACTORIES = [
     lambda: PyroMultiOptimizer(pyro.optim.Adam({'lr': 0.05})),
@@ -24,6 +24,7 @@ FACTORIES = [
 
 
 @pytest.mark.parametrize('factory', FACTORIES)
+@skipif_rocm
 def test_optimizers(factory):
     optim = factory()
 

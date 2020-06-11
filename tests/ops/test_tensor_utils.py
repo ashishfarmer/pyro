@@ -12,7 +12,7 @@ import pyro
 from pyro.ops.tensor_utils import (block_diag_embed, block_diagonal, convolve, dct, idct, next_fast_len,
                                    periodic_cumsum, periodic_features, periodic_repeat, precision_to_scale_tril,
                                    repeated_matmul)
-from tests.common import assert_close, assert_equal
+from tests.common import assert_close, assert_equal, skipif_rocm
 
 pytestmark = pytest.mark.stage('unit')
 
@@ -93,7 +93,7 @@ def test_convolve_shape(m, n, mode):
     signal = torch.randn(m)
     kernel = torch.randn(n)
     actual = convolve(signal, kernel, mode)
-    expected = np.convolve(signal, kernel, mode=mode)
+    expected = np.convolve(signal.cpu(), kernel.cpu(), mode=mode)
     assert actual.shape == expected.shape
 
 
@@ -106,7 +106,7 @@ def test_convolve(batch_shape, m, n, mode):
     kernel = torch.randn(*batch_shape, n)
     actual = convolve(signal, kernel, mode)
     expected = torch.stack([
-        torch.tensor(np.convolve(s, k, mode=mode))
+        torch.tensor(np.convolve(s.cpu(), k.cpu(), mode=mode))
         for s, k in zip(signal.reshape(-1, m), kernel.reshape(-1, n))
     ]).reshape(*batch_shape, -1)
     assert_close(actual, expected)
@@ -129,7 +129,7 @@ def test_repeated_matmul(size, n):
 def test_dct(shape):
     x = torch.randn(shape)
     actual = dct(x)
-    expected = torch.from_numpy(fftpack.dct(x.numpy(), norm='ortho'))
+    expected = torch.from_numpy(fftpack.dct(x.cpu().numpy(), norm='ortho'))
     assert_close(actual, expected)
 
 
@@ -137,7 +137,7 @@ def test_dct(shape):
 def test_idct(shape):
     x = torch.randn(shape)
     actual = idct(x)
-    expected = torch.from_numpy(fftpack.idct(x.numpy(), norm='ortho'))
+    expected = torch.from_numpy(fftpack.idct(x.cpu().numpy(), norm='ortho'))
     assert_close(actual, expected)
 
 
@@ -162,6 +162,7 @@ def test_next_fast_len():
     ((), (5,)),
     ((3,), (4,)),
 ])
+@skipif_rocm
 def test_precision_to_scale_tril(batch_shape, event_shape):
     x = torch.randn(batch_shape + event_shape + event_shape)
     precision = x.matmul(x.transpose(-2, -1))

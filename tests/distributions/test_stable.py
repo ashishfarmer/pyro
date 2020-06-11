@@ -42,7 +42,7 @@ def test_sample(alpha, beta):
         try:
             old = pyro.distributions.stable.RADIUS
             pyro.distributions.stable.RADIUS = 0.02
-            return d.sample([size])
+            return d.sample([size]).cpu()
         finally:
             pyro.distributions.stable.RADIUS = old
 
@@ -77,7 +77,7 @@ def test_sample_2(alpha, beta):
         actual = d.sample([num_samples])
     finally:
         pyro.distributions.stable.RADIUS = old
-    actual = d.sample([num_samples])
+    actual = d.sample([num_samples]).cpu()
 
     expected = levy_stable.rvs(alpha, beta, size=num_samples)
 
@@ -110,7 +110,7 @@ def test_additive(stability, skew0, skew1, scale0, scale1):
     d = dist.Stable(stability, skew, scale, coords="S")
     actual = d.sample([num_samples])
 
-    assert ks_2samp(expected, actual).pvalue > 0.05
+    assert ks_2samp(expected.cpu(), actual.cpu()).pvalue > 0.05
 
 
 @pytest.mark.parametrize("scale", [0.5, 1.5])

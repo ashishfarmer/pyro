@@ -8,7 +8,7 @@ from subprocess import check_call
 
 import pytest
 
-from tests.common import EXAMPLES_DIR, requires_cuda, xfail_param
+from tests.common import EXAMPLES_DIR, requires_cuda, xfail_param, skip_param_rocm
 
 logger = logging.getLogger(__name__)
 pytestmark = pytest.mark.stage('test_examples')
@@ -107,13 +107,13 @@ CUDA_EXAMPLES = [
     'air/main.py --num-steps=1 --cuda',
     'baseball.py --num-samples=200 --warmup-steps=100 --num-chains=2 --cuda',
     'contrib/cevae/synthetic.py --num-epochs=1 --cuda',
-    'contrib/epidemiology/sir.py -t=2 -w=2 -n=4 -d=20 -p=1000 -f 2 --cuda',
-    'contrib/epidemiology/sir.py -t=2 -w=2 -n=4 -d=20 -p=1000 -f 2 -nb=16 --cuda',
-    'contrib/epidemiology/sir.py -t=2 -w=2 -n=4 -d=20 -p=1000 -f 2 --haar --cuda',
-    'contrib/epidemiology/regional.py -t=2 -w=2 -n=4 -r=3 -d=20 -p=1000 -f 2 --cuda',
-    'contrib/epidemiology/regional.py -t=2 -w=2 -n=4 -r=3 -d=20 -p=1000 -f 2 --haar --cuda',
-    'contrib/gp/sv-dkl.py --epochs=1 --num-inducing=4 --cuda',
-    'lkj.py --n=50 --num-chains=1 --warmup-steps=100 --num-samples=200 --cuda',
+    skip_param_rocm('contrib/epidemiology/sir.py -t=2 -w=2 -n=4 -d=20 -p=1000 -f 2 --cuda'),
+    skip_param_rocm('contrib/epidemiology/sir.py -t=2 -w=2 -n=4 -d=20 -p=1000 -f 2 -nb=16 --cuda'),
+    skip_param_rocm('contrib/epidemiology/sir.py -t=2 -w=2 -n=4 -d=20 -p=1000 -f 2 --haar --cuda'),
+    skip_param_rocm('contrib/epidemiology/regional.py -t=2 -w=2 -n=4 -r=3 -d=20 -p=1000 -f 2 --cuda'),
+    skip_param_rocm('contrib/epidemiology/regional.py -t=2 -w=2 -n=4 -r=3 -d=20 -p=1000 -f 2 --haar --cuda'),
+    skip_param_rocm('contrib/gp/sv-dkl.py --epochs=1 --num-inducing=4 --cuda'),
+    skip_param_rocm('lkj.py --n=50 --num-chains=1 --warmup-steps=100 --num-samples=200 --cuda'),
     'dmm/dmm.py --num-epochs=1 --cuda',
     'dmm/dmm.py --num-epochs=1 --num-iafs=1 --cuda',
     'dmm/dmm.py --num-epochs=1 --tmc --tmc-num-samples=2 --cuda',
@@ -135,9 +135,9 @@ CUDA_EXAMPLES = [
     'hmm.py --num-steps=1 --truncate=10 --model=4 --tmc --tmc-num-samples=2 --cuda',
     'hmm.py --num-steps=1 --truncate=10 --model=5 --tmc --tmc-num-samples=2 --cuda',
     'hmm.py --num-steps=1 --truncate=10 --model=6 --tmc --tmc-num-samples=2 --cuda',
-    'sir_hmc.py -t=2 -w=2 -n=4 -d=2 -m=1 --enum --cuda',
-    'sir_hmc.py -t=2 -w=2 -n=4 -d=2 -p=10000 --sequential --cuda',
-    'sir_hmc.py -t=2 -w=2 -n=4 -d=100 -p=10000 --cuda',
+    skip_param_rocm('sir_hmc.py -t=2 -w=2 -n=4 -d=2 -m=1 --enum --cuda'),
+    skip_param_rocm('sir_hmc.py -t=2 -w=2 -n=4 -d=2 -p=10000 --sequential --cuda'),
+    skip_param_rocm('sir_hmc.py -t=2 -w=2 -n=4 -d=100 -p=10000 --cuda'),
     'vae/vae.py --num-epochs=1 --cuda',
     'vae/ss_vae_M2.py --num-epochs=1 --cuda',
     'vae/ss_vae_M2.py --num-epochs=1 --aux-loss --cuda',

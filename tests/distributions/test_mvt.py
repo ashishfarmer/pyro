@@ -9,7 +9,7 @@ import torch
 from torch.distributions import Gamma, MultivariateNormal, StudentT
 
 from pyro.distributions import MultivariateStudentT
-from tests.common import assert_equal
+from tests.common import assert_equal, skipif_rocm
 
 
 def random_mvt(df_shape, loc_shape, cov_shape, dim):
@@ -37,6 +37,7 @@ def random_mvt(df_shape, loc_shape, cov_shape, dim):
 @pytest.mark.parametrize('dim', [
     1, 3, 5,
 ])
+@skipif_rocm
 def test_shape(df_shape, loc_shape, cov_shape, dim):
     mvt = random_mvt(df_shape, loc_shape, cov_shape, dim)
     assert mvt.df.shape == mvt.batch_shape
@@ -57,6 +58,7 @@ def test_shape(df_shape, loc_shape, cov_shape, dim):
     (4,),
 ], ids=str)
 @pytest.mark.parametrize("dim", [1, 2])
+@skipif_rocm
 def test_log_prob(batch_shape, dim):
     loc = torch.randn(batch_shape + (dim,))
     A = torch.randn(batch_shape + (dim, dim + dim))
@@ -80,6 +82,7 @@ def test_log_prob(batch_shape, dim):
 
 @pytest.mark.parametrize("df", [3.9, 9.1])
 @pytest.mark.parametrize("dim", [1, 2])
+@skipif_rocm
 def test_rsample(dim, df, num_samples=200 * 1000):
     scale_tril = (0.5 * torch.randn(dim)).exp().diag() + 0.1 * torch.randn(dim, dim)
     scale_tril = scale_tril.tril(0)
@@ -101,6 +104,7 @@ def test_rsample(dim, df, num_samples=200 * 1000):
 
 
 @pytest.mark.parametrize("dim", [1, 2])
+@skipif_rocm
 def test_log_prob_normalization(dim, df=6.1, grid_size=2000, domain_width=5.0):
     scale_tril = (0.2 * torch.randn(dim) - 1.5).exp().diag() + 0.1 * torch.randn(dim, dim)
     scale_tril = 0.1 * scale_tril.tril(0)
@@ -125,6 +129,7 @@ def test_log_prob_normalization(dim, df=6.1, grid_size=2000, domain_width=5.0):
     (3, 2),
     (4,),
 ], ids=str)
+@skipif_rocm
 def test_mean_var(batch_shape):
     dim = 2
     loc = torch.randn(batch_shape + (dim,))

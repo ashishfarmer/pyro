@@ -7,13 +7,14 @@ import torch
 
 from pyro.ops.welford import WelfordArrowheadCovariance, WelfordCovariance
 from pyro.util import optional
-from tests.common import assert_equal
+from tests.common import assert_equal, skipif_rocm
 
 
 @pytest.mark.parametrize('n_samples,dim_size', [(1000, 1),
                                                 (1000, 7),
                                                 (1, 1)])
 @pytest.mark.init(rng_seed=7)
+@skipif_rocm
 def test_welford_diagonal(n_samples, dim_size):
     w = WelfordCovariance(diagonal=True)
     loc = torch.zeros(dim_size)
@@ -36,6 +37,7 @@ def test_welford_diagonal(n_samples, dim_size):
                                                 (1000, 7),
                                                 (1, 1)])
 @pytest.mark.init(rng_seed=7)
+@skipif_rocm
 def test_welford_dense(n_samples, dim_size):
     w = WelfordCovariance(diagonal=False)
     loc = torch.zeros(dim_size)
@@ -59,6 +61,7 @@ def test_welford_dense(n_samples, dim_size):
     (1000, 5, 5)
 ])
 @pytest.mark.parametrize('regularize', [True, False])
+@skipif_rocm
 def test_welford_arrowhead(n_samples, dim_size, head_size, regularize):
     adapt_scheme = WelfordArrowheadCovariance(head_size=head_size)
     loc = torch.zeros(dim_size)

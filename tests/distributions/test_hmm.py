@@ -19,7 +19,7 @@ from pyro.ops.gamma_gaussian import (gamma_and_mvn_to_gamma_gaussian, gamma_gaus
                                      matrix_and_mvn_to_gamma_gaussian)
 from pyro.ops.gaussian import gaussian_tensordot, matrix_and_mvn_to_gaussian, mvn_to_gaussian
 from pyro.ops.indexing import Vindex
-from tests.common import assert_close
+from tests.common import assert_close, skipif_rocm
 from tests.ops.gamma_gaussian import assert_close_gamma_gaussian, random_gamma, random_gamma_gaussian
 from tests.ops.gaussian import assert_close_gaussian, random_gaussian, random_mvn
 
@@ -63,6 +63,7 @@ def test_sequential_logmatmulexp(batch_shape, state_dim, num_steps):
 @pytest.mark.parametrize('num_steps', list(range(1, 20)))
 @pytest.mark.parametrize('state_dim', [1, 2, 3])
 @pytest.mark.parametrize('batch_shape', [(), (5,), (2, 4)], ids=str)
+@skipif_rocm
 def test_sequential_gaussian_tensordot(batch_shape, state_dim, num_steps):
     g = random_gaussian(batch_shape + (num_steps,), state_dim + state_dim)
     actual = _sequential_gaussian_tensordot(g)
@@ -80,6 +81,7 @@ def test_sequential_gaussian_tensordot(batch_shape, state_dim, num_steps):
 @pytest.mark.parametrize('state_dim', [1, 2, 3])
 @pytest.mark.parametrize('batch_shape', [(), (4,), (3, 2)], ids=str)
 @pytest.mark.parametrize('sample_shape', [(), (4,), (3, 2)], ids=str)
+@skipif_rocm
 def test_sequential_gaussian_filter_sample(sample_shape, batch_shape, state_dim, num_steps):
     init = random_gaussian(batch_shape, state_dim)
     trans = random_gaussian(batch_shape + (num_steps,), state_dim + state_dim)
@@ -90,6 +92,7 @@ def test_sequential_gaussian_filter_sample(sample_shape, batch_shape, state_dim,
 @pytest.mark.parametrize('num_steps', list(range(1, 20)))
 @pytest.mark.parametrize('state_dim', [1, 2, 3])
 @pytest.mark.parametrize('batch_shape', [(), (5,), (2, 4)], ids=str)
+@skipif_rocm
 def test_sequential_gamma_gaussian_tensordot(batch_shape, state_dim, num_steps):
     g = random_gamma_gaussian(batch_shape + (num_steps,), state_dim + state_dim)
     actual = _sequential_gamma_gaussian_tensordot(g)
@@ -127,6 +130,7 @@ def test_sequential_gamma_gaussian_tensordot(batch_shape, state_dim, num_steps):
     (False, (3,), (7,), (4, 7)),
     (False, (), (3, 7), (4, 7)),
 ], ids=str)
+@skipif_rocm
 def test_discrete_hmm_shape(ok, init_shape, trans_shape, obs_shape, event_shape, state_dim):
     init_logits = torch.randn(init_shape + (state_dim,))
     trans_logits = torch.randn(trans_shape + (state_dim, state_dim))
@@ -272,6 +276,7 @@ def test_discrete_hmm_diag_normal(num_steps):
     ((5,), (5, 6), (5, 6), (5, 6), (5, 6)),
 ], ids=str)
 @pytest.mark.parametrize("diag", [False, True], ids=["full", "diag"])
+@skipif_rocm
 def test_gaussian_hmm_shape(diag, init_shape, trans_mat_shape, trans_mvn_shape,
                             obs_mat_shape, obs_mvn_shape, hidden_dim, obs_dim):
     init_dist = random_mvn(init_shape, hidden_dim)
@@ -334,6 +339,7 @@ def test_gaussian_hmm_shape(diag, init_shape, trans_mat_shape, trans_mvn_shape,
         assert d2.event_shape == (f, obs_dim)
 
 
+@skipif_rocm
 def test_gaussian_hmm_high_obs_dim():
     hidden_dim = 1
     obs_dim = 1000
@@ -358,6 +364,7 @@ def test_gaussian_hmm_high_obs_dim():
 @pytest.mark.parametrize('hidden_dim', [1, 2])
 @pytest.mark.parametrize('num_steps', [1, 2, 3, 4])
 @pytest.mark.parametrize("diag", [False, True], ids=["full", "diag"])
+@skipif_rocm
 def test_gaussian_hmm_distribution(diag, sample_shape, batch_shape, num_steps, hidden_dim, obs_dim):
     init_dist = random_mvn(batch_shape, hidden_dim)
     trans_mat = torch.randn(batch_shape + (num_steps, hidden_dim, hidden_dim))
@@ -466,6 +473,7 @@ def test_gaussian_hmm_distribution(diag, sample_shape, batch_shape, num_steps, h
     ((11,), (11, 7), (11, 7)),
     ((4, 1, 1), (3, 1, 7), (2, 7)),
 ], ids=str)
+@skipif_rocm
 def test_gaussian_mrf_shape(init_shape, trans_shape, obs_shape, hidden_dim, obs_dim):
     init_dist = random_mvn(init_shape, hidden_dim)
     trans_dist = random_mvn(trans_shape, hidden_dim + hidden_dim)
@@ -490,6 +498,7 @@ def test_gaussian_mrf_shape(init_shape, trans_shape, obs_shape, hidden_dim, obs_
 @pytest.mark.parametrize('obs_dim', [1, 2])
 @pytest.mark.parametrize('hidden_dim', [1, 2])
 @pytest.mark.parametrize('num_steps', [1, 2, 3, 4])
+@skipif_rocm
 def test_gaussian_mrf_log_prob(sample_shape, batch_shape, num_steps, hidden_dim, obs_dim):
     init_dist = random_mvn(batch_shape, hidden_dim)
     trans_dist = random_mvn(batch_shape + (num_steps,), hidden_dim + hidden_dim)
@@ -541,6 +550,7 @@ def test_gaussian_mrf_log_prob(sample_shape, batch_shape, num_steps, hidden_dim,
 @pytest.mark.parametrize('obs_dim', [1, 2])
 @pytest.mark.parametrize('hidden_dim', [1, 2])
 @pytest.mark.parametrize('num_steps', [1, 2, 3, 4])
+@skipif_rocm
 def test_gaussian_mrf_log_prob_block_diag(sample_shape, batch_shape, num_steps, hidden_dim, obs_dim):
     # Construct a block-diagonal obs dist, so observations are independent of hidden state.
     obs_dist = random_mvn(batch_shape + (num_steps,), hidden_dim + obs_dim)
@@ -581,6 +591,7 @@ def test_gaussian_mrf_log_prob_block_diag(sample_shape, batch_shape, num_steps, 
     ((), (5,), (), (), (), (6,)),
     ((5,), (5,), (5, 6), (5, 6), (5, 6), (5, 6)),
 ], ids=str)
+@skipif_rocm
 def test_gamma_gaussian_hmm_shape(scale_shape, init_shape, trans_mat_shape, trans_mvn_shape,
                                   obs_mat_shape, obs_mvn_shape, hidden_dim, obs_dim):
     init_dist = random_mvn(init_shape, hidden_dim)
@@ -622,6 +633,7 @@ def test_gamma_gaussian_hmm_shape(scale_shape, init_shape, trans_mat_shape, tran
 @pytest.mark.parametrize('obs_dim', [1, 2])
 @pytest.mark.parametrize('hidden_dim', [1, 2])
 @pytest.mark.parametrize('num_steps', [1, 2, 3, 4])
+@skipif_rocm
 def test_gamma_gaussian_hmm_log_prob(sample_shape, batch_shape, num_steps, hidden_dim, obs_dim):
     init_dist = random_mvn(batch_shape, hidden_dim)
     trans_mat = torch.randn(batch_shape + (num_steps, hidden_dim, hidden_dim))
@@ -798,6 +810,7 @@ def test_studentt_hmm_shape(init_shape, trans_mat_shape, trans_dist_shape,
     ((5,), (), (), (), (6,)),
     ((5,), (5, 6), (5, 6), (5, 6), (5, 6)),
 ], ids=str)
+@skipif_rocm
 def test_independent_hmm_shape(init_shape, trans_mat_shape, trans_mvn_shape,
                                obs_mat_shape, obs_mvn_shape, hidden_dim, obs_dim):
     base_init_shape = init_shape + (obs_dim,)

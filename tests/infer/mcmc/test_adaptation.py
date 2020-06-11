@@ -10,7 +10,7 @@ from pyro.infer.mcmc.adaptation import (
     WarmupAdapter,
     adapt_window,
 )
-from tests.common import assert_close, assert_equal
+from tests.common import assert_close, assert_equal, skipif_rocm
 
 
 @pytest.mark.parametrize("adapt_step_size, adapt_mass, warmup_steps, expected", [
@@ -21,6 +21,7 @@ from tests.common import assert_close, assert_equal
     (True, True, 280, [(0, 74), (75, 99), (100, 229), (230, 279)]),
     (True, True, 18, [(0, 17)]),
 ])
+@skipif_rocm
 def test_adaptation_schedule(adapt_step_size, adapt_mass, warmup_steps, expected):
     adapter = WarmupAdapter(0.1,
                             adapt_step_size=adapt_step_size,
@@ -31,6 +32,7 @@ def test_adaptation_schedule(adapt_step_size, adapt_mass, warmup_steps, expected
 
 
 @pytest.mark.parametrize("diagonal", [True, False])
+@skipif_rocm
 def test_arrowhead_mass_matrix(diagonal):
     shape = (2, 3)
     num_samples = 1000

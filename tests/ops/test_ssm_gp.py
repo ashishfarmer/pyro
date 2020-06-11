@@ -5,11 +5,12 @@ import pytest
 import torch
 
 from pyro.ops.ssm_gp import MaternKernel
-from tests.common import assert_equal
+from tests.common import assert_equal, skipif_rocm
 
 
 @pytest.mark.parametrize('num_gps', [1, 2, 3])
 @pytest.mark.parametrize('nu', [0.5, 1.5, 2.5])
+@skipif_rocm
 def test_matern_kernel(num_gps, nu):
     mk = MaternKernel(nu=nu, num_gps=num_gps, length_scale_init=0.1 + torch.rand(num_gps))
 

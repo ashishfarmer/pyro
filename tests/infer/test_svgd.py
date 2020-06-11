@@ -48,10 +48,10 @@ def test_mean_variance(latent_dist, mode, stein_kernel, verbose=True):
     final_particles = svgd.get_named_particles()['z']
 
     if verbose:
-        print("[mean]: actual, expected = ", final_particles.mean(0).data.numpy(),
-              latent_dist.mean.data.numpy())
-        print("[var]: actual, expected = ", final_particles.var(0).data.numpy(),
-              latent_dist.variance.data.numpy())
+        print("[mean]: actual, expected = ", final_particles.mean(0).data.cpu().numpy(),
+              latent_dist.mean.data.cpu().numpy())
+        print("[var]: actual, expected = ", final_particles.var(0).data.cpu().numpy(),
+              latent_dist.variance.data.cpu().numpy())
 
     assert_equal(final_particles.mean(0), latent_dist.mean, prec=0.01)
     prec = 0.05 if mode == 'multivariate' else 0.02

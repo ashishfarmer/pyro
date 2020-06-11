@@ -22,7 +22,7 @@ from pyro.infer import (SVI, EnergyDistance, JitTrace_ELBO, JitTraceEnum_ELBO, J
 from pyro.infer.autoguide import AutoDelta
 from pyro.infer.reparam import LatentStableReparam
 from pyro.infer.util import torch_item
-from tests.common import assert_close, assert_equal, xfail_if_not_implemented, xfail_param
+from tests.common import assert_close, assert_equal, xfail_if_not_implemented, xfail_param, skipif_rocm, rocm_env
 
 logger = logging.getLogger(__name__)
 
@@ -239,15 +239,19 @@ class TestFixedModelGuide(TestCase):
         error = ('model' in fixed_parts and model_changed) or ('guide' in fixed_parts and guide_changed)
         return (not error)
 
+    @pytest.mark.skipif(rocm_env, reason="parameter invalid values on ROCm")
     def test_model_fixed(self):
         assert self.do_test_fixedness(fixed_parts=["model"])
 
+    @pytest.mark.skipif(rocm_env, reason="parameter invalid values on ROCm")
     def test_guide_fixed(self):
         assert self.do_test_fixedness(fixed_parts=["guide"])
 
+    @pytest.mark.skipif(rocm_env, reason="parameter invalid values on ROCm")
     def test_guide_and_model_both_fixed(self):
         assert self.do_test_fixedness(fixed_parts=["model", "guide"])
 
+    @pytest.mark.skipif(rocm_env, reason="parameter invalid values on ROCm")
     def test_guide_and_model_free(self):
         assert self.do_test_fixedness(fixed_parts=["bogus_tag"])
 
@@ -267,12 +271,14 @@ class PoissonGammaTests(TestCase):
         self.beta_n = self.beta0 + torch.tensor(float(self.n_data))  # posterior beta
         self.sample_batch_size = 2
 
+    @pytest.mark.skipif(rocm_env, reason="parameter invalid values on ROCm")
     def test_elbo_reparameterized(self):
         self.do_elbo_test(True, 10000, Trace_ELBO())
 
     def test_elbo_nonreparameterized(self):
         self.do_elbo_test(False, 25000, Trace_ELBO())
 
+    @pytest.mark.skipif(rocm_env, reason="parameter invalid values on ROCm")
     def test_renyi_reparameterized(self):
         self.do_elbo_test(True, 5000, RenyiELBO(num_particles=2))
 
@@ -285,6 +291,7 @@ class PoissonGammaTests(TestCase):
     def test_rws_nonreparameterized(self):
         self.do_elbo_test(False, 12500, ReweightedWakeSleep(num_particles=2))
 
+    @pytest.mark.skipif(rocm_env, reason="parameter invalid values on ROCm")
     def test_mmd_vectorized(self):
         z_size = 1
         self.do_fit_prior_test(
@@ -394,6 +401,7 @@ class PoissonGammaTests(TestCase):
     (fakes.NonreparameterizedGamma, 10000),
     (ShapeAugmentedGamma, 5000),
 ], ids=['reparam', 'nonreparam', 'rsvi'])
+@pytest.mark.skipif(rocm_env, reason="parameter invalid values on ROCm")
 def test_exponential_gamma(gamma_dist, n_steps, elbo_impl):
     pyro.clear_param_store()
 
@@ -458,6 +466,7 @@ class BernoulliBetaTests(TestCase):
         self.log_beta_n = torch.log(self.beta_n)
         self.sample_batch_size = 2
 
+    @pytest.mark.skipif(rocm_env, reason="parameter invalid values on ROCm")
     def test_elbo_reparameterized(self):
         self.do_elbo_test(True, 10000, Trace_ELBO())
 
@@ -465,6 +474,7 @@ class BernoulliBetaTests(TestCase):
         self.do_elbo_test(False, 10000, Trace_ELBO())
 
     # this is used to detect bugs related to https://github.com/pytorch/pytorch/issues/9521
+    @pytest.mark.skipif(rocm_env, reason="parameter invalid values on ROCm")
     def test_elbo_reparameterized_vectorized(self):
         self.do_elbo_test(True, 5000, Trace_ELBO(num_particles=2, vectorize_particles=True,
                                                  max_plate_nesting=1))
@@ -474,12 +484,14 @@ class BernoulliBetaTests(TestCase):
         self.do_elbo_test(False, 5000, Trace_ELBO(num_particles=2, vectorize_particles=True,
                                                   max_plate_nesting=1))
 
+    @pytest.mark.skipif(rocm_env, reason="parameter invalid values on ROCm")
     def test_renyi_reparameterized(self):
         self.do_elbo_test(True, 5000, RenyiELBO(num_particles=2))
 
     def test_renyi_nonreparameterized(self):
         self.do_elbo_test(False, 5000, RenyiELBO(alpha=0.2, num_particles=2))
 
+    @pytest.mark.skipif(rocm_env, reason="parameter invalid values on ROCm")
     def test_renyi_reparameterized_vectorized(self):
         self.do_elbo_test(True, 5000, RenyiELBO(num_particles=2, vectorize_particles=True,
                                                 max_plate_nesting=1))
@@ -652,6 +664,7 @@ class SafetyTests(TestCase):
 
 @pytest.mark.stage("integration", "integration_batch_1")
 @pytest.mark.parametrize("prior_scale", [0, 1e-4])
+@skipif_rocm
 def test_energy_distance_univariate(prior_scale):
 
     def model(data):
@@ -691,6 +704,7 @@ def test_energy_distance_univariate(prior_scale):
 
 @pytest.mark.stage("integration", "integration_batch_1")
 @pytest.mark.parametrize("prior_scale", [0, 1])
+@skipif_rocm
 def test_energy_distance_multivariate(prior_scale):
 
     def model(data):

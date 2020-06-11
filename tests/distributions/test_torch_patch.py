@@ -5,7 +5,7 @@ import pytest
 import torch
 
 import pyro.distributions as dist
-from tests.common import assert_close, requires_cuda
+from tests.common import assert_close, requires_cuda, skipif_rocm
 
 
 @requires_cuda
@@ -22,6 +22,7 @@ def test_linspace():
 
 @pytest.mark.parametrize("batch_shape", [(), (5,), (2, 3)], ids=str)
 @pytest.mark.parametrize("dim", [1, 2, 3, 4])
+@skipif_rocm
 def test_lower_cholesky_transform(batch_shape, dim):
     t = torch.distributions.transform_to(torch.distributions.constraints.lower_cholesky)
     x = torch.randn(batch_shape + (dim, dim))

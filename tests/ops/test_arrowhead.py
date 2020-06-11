@@ -6,10 +6,11 @@ import torch
 
 from pyro.ops.arrowhead import SymmArrowhead, sqrt, triu_gram, triu_inverse, triu_matvecmul
 
-from tests.common import assert_close
+from tests.common import assert_close, skipif_rocm
 
 
 @pytest.mark.parametrize('head_size', [0, 2, 5])
+@skipif_rocm
 def test_utilities(head_size):
     size = 5
     cov = torch.randn(size, size)

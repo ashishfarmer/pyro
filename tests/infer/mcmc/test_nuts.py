@@ -17,7 +17,7 @@ from pyro.infer.mcmc import ArrowheadMassMatrix, MCMC, NUTS
 import pyro.optim as optim
 import pyro.poutine as poutine
 from pyro.util import ignore_jit_warnings
-from tests.common import assert_close, assert_equal
+from tests.common import assert_close, assert_equal, skipif_rocm, rocm_env, skip_param_rocm
 
 from .test_hmc import GaussianChain, rmse
 
@@ -134,6 +134,7 @@ def test_nuts_conjugate_gaussian(fixture,
 
 @pytest.mark.parametrize("jit", [False, mark_jit(True)], ids=jit_idfn)
 @pytest.mark.parametrize("use_multinomial_sampling", [True, False])
+@pytest.mark.skipif(rocm_env, reason="test fails on ROCm")
 def test_logistic_regression(jit, use_multinomial_sampling):
     dim = 3
     data = torch.randn(2000, dim)
@@ -163,7 +164,7 @@ def test_logistic_regression(jit, use_multinomial_sampling):
         (0.5, False, True, False),
         (None, True, False, False),
         (None, True, True, False),
-        (None, True, True, True),
+        skip_param_rocm(None, True, True, True),
     ]
 )
 def test_beta_bernoulli(step_size, adapt_step_size, adapt_mass_matrix, full_mass):
@@ -360,6 +361,7 @@ def test_beta_binomial(hyperpriors):
 
 
 @pytest.mark.parametrize("hyperpriors", [False, True])
+@pytest.mark.skipif(rocm_env, reason="test fails on ROCm")
 def test_gamma_poisson(hyperpriors):
     def model(data):
         with pyro.plate("latent_dim", data.shape[1]):
@@ -381,6 +383,7 @@ def test_gamma_poisson(hyperpriors):
     assert_equal(posterior["rate"].mean(0), true_rate, prec=0.3)
 
 
+@skipif_rocm
 def test_structured_mass():
     def model(cov):
         w = pyro.sample("w", dist.Normal(0, 1000).expand([2]).to_event(1))
@@ -413,6 +416,7 @@ def test_structured_mass():
     assert_close(kernel.inverse_mass_matrix[("z",)], z_var, atol=0.5, rtol=0.5)
 
 
+@skipif_rocm
 def test_arrowhead_mass():
     def model(prec):
         w = pyro.sample("w", dist.Normal(0, 1000).expand([2]).to_event(1))

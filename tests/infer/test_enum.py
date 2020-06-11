@@ -26,7 +26,7 @@ from pyro.infer.traceenum_elbo import TraceEnum_ELBO
 from pyro.infer.util import LAST_CACHE_SIZE
 from pyro.ops.indexing import Vindex
 from pyro.util import torch_isnan
-from tests.common import assert_equal, skipif_param
+from tests.common import assert_equal, skipif_param, skip_param_rocm, skipif_rocm
 
 try:
     from contextlib import ExitStack  # python 3
@@ -492,7 +492,7 @@ def test_elbo_berns(method, enumerate1, enumerate2, enumerate3, num_samples):
     ]))
 
 
-@pytest.mark.parametrize("num_samples", [None, 2000])
+@pytest.mark.parametrize("num_samples", [None, skip_param_rocm(2000)])
 @pytest.mark.parametrize("max_plate_nesting", [0, 1])
 @pytest.mark.parametrize("enumerate1", ["sequential", "parallel"])
 @pytest.mark.parametrize("enumerate2", ["sequential", "parallel"])
@@ -690,6 +690,7 @@ def test_elbo_iplate(plate_dim, enumerate1, enumerate2):
 ])
 @pytest.mark.parametrize("inner_dim", [2])
 @pytest.mark.parametrize("outer_dim", [2])
+@skipif_rocm
 def test_elbo_plate_plate(outer_dim, inner_dim, enumerate1, enumerate2, enumerate3, enumerate4, num_samples):
     pyro.clear_param_store()
     num_particles = 1 if all([enumerate1, enumerate2, enumerate3, enumerate4]) else 100000
@@ -751,6 +752,7 @@ def test_elbo_plate_plate(outer_dim, inner_dim, enumerate1, enumerate2, enumerat
 ])
 @pytest.mark.parametrize("inner_dim", [2])
 @pytest.mark.parametrize("outer_dim", [3])
+@skipif_rocm
 def test_elbo_plate_iplate(outer_dim, inner_dim, enumerate1, enumerate2, enumerate3, num_samples):
     pyro.clear_param_store()
     num_particles = 1 if all([enumerate1, enumerate2, enumerate3]) else 100000

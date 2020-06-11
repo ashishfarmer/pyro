@@ -9,7 +9,7 @@ import torch
 from pyro.ops.stats import (_cummin, autocorrelation, autocovariance, crps_empirical, effective_sample_size,
                             fit_generalized_pareto, gelman_rubin, hpdi, pi, quantile, resample, split_gelman_rubin,
                             waic)
-from tests.common import assert_close, assert_equal, xfail_if_not_implemented
+from tests.common import assert_close, assert_equal, xfail_if_not_implemented, rocm_env
 
 
 @pytest.mark.parametrize('replacement', [True, False])
@@ -33,6 +33,7 @@ def test_resample(replacement):
 
 
 @pytest.mark.init(rng_seed=3)
+@pytest.mark.skipif(rocm_env, reason="test fails on ROCm")
 def test_quantile():
     x = torch.tensor([0., 1., 2.])
     y = torch.rand(2000)

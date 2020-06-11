@@ -11,7 +11,7 @@ import pyro.poutine as poutine
 import pytest
 from pyro.infer.importance import psis_diagnostic
 from pyro.infer.util import MultiFrameTensor
-from tests.common import assert_equal
+from tests.common import assert_equal, skip_param_rocm
 
 
 def xy_model():
@@ -51,7 +51,7 @@ def test_multi_frame_tensor():
         assert_equal(actual_sum, expected_sum, msg=name)
 
 
-@pytest.mark.parametrize('max_particles', [250 * 1000, 500 * 1000])
+@pytest.mark.parametrize('max_particles', [250 * 1000, skip_param_rocm(500 * 1000)])
 @pytest.mark.parametrize('scale,krange', [(0.5, (0.7, 0.9)),
                                           (0.95, (0.05, 0.2))])
 @pytest.mark.parametrize('zdim', [1, 5])
