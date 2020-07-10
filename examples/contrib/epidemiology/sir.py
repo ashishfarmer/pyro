@@ -13,15 +13,20 @@ import torch
 from torch.distributions import biject_to, constraints
 
 import pyro
-from pyro.contrib.epidemiology import (OverdispersedSEIRModel, OverdispersedSIRModel, SimpleSEIRModel, SimpleSIRModel,
-                                       SuperspreadingSEIRModel, SuperspreadingSIRModel)
+from pyro.contrib.epidemiology.models import (HeterogeneousSIRModel, OverdispersedSEIRModel, OverdispersedSIRModel,
+                                              SimpleSEIRModel, SimpleSIRModel, SuperspreadingSEIRModel,
+                                              SuperspreadingSIRModel)
 
 logging.basicConfig(format='%(message)s', level=logging.INFO)
 
 
 def Model(args, data):
     """Dispatch between different model classes."""
-    if args.incubation_time > 0:
+    if args.heterogeneous:
+        assert args.incubation_time == 0
+        assert args.overdispersion == 0
+        return HeterogeneousSIRModel(args.population, args.recovery_time, data)
+    elif args.incubation_time > 0:
         assert args.incubation_time > 1
         if args.concentration < math.inf:
             return SuperspreadingSEIRModel(args.population, args.incubation_time,
@@ -73,7 +78,8 @@ def generate_data(args):
                          .format(max_obs, args.max_obs_portion))
 
 
-def infer(args, model):
+def infer_mcmc(args, model):
+    parallel = args.num_chains > 1
     energies = []
 
     def hook_fn(kernel, *unused):
@@ -82,19 +88,22 @@ def infer(args, model):
         if args.verbose:
             logging.info("potential = {:0.6g}".format(e))
 
-    mcmc = model.fit(heuristic_num_particles=args.num_particles,
-                     heuristic_ess_threshold=args.ess_threshold,
-                     warmup_steps=args.warmup_steps,
-                     num_samples=args.num_samples,
-                     max_tree_depth=args.max_tree_depth,
-                     arrowhead_mass=args.arrowhead_mass,
-                     num_quant_bins=args.num_bins,
-                     haar=args.haar,
-                     haar_full_mass=args.haar_full_mass,
-                     hook_fn=hook_fn)
+    mcmc = model.fit_mcmc(heuristic_num_particles=args.smc_particles,
+                          heuristic_ess_threshold=args.ess_threshold,
+                          warmup_steps=args.warmup_steps,
+                          num_samples=args.num_samples,
+                          num_chains=args.num_chains,
+                          mp_context="spawn" if parallel else None,
+                          max_tree_depth=args.max_tree_depth,
+                          arrowhead_mass=args.arrowhead_mass,
+                          num_quant_bins=args.num_bins,
+                          haar=args.haar,
+                          haar_full_mass=args.haar_full_mass,
+                          jit_compile=args.jit,
+                          hook_fn=None if parallel else hook_fn)
 
     mcmc.summary()
-    if args.plot:
+    if args.plot and energies:
         import matplotlib.pyplot as plt
         plt.figure(figsize=(6, 3))
         plt.plot(energies)
@@ -106,10 +115,32 @@ def infer(args, model):
     return model.samples
 
 
+def infer_svi(args, model):
+    losses = model.fit_svi(heuristic_num_particles=args.smc_particles,
+                           heuristic_ess_threshold=args.ess_threshold,
+                           num_samples=args.num_samples,
+                           num_steps=args.svi_steps,
+                           num_particles=args.svi_particles,
+                           haar=args.haar,
+                           jit=args.jit)
+
+    if args.plot:
+        import matplotlib.pyplot as plt
+        plt.figure(figsize=(6, 3))
+        plt.plot(losses)
+        plt.xlabel("SVI step")
+        plt.ylabel("loss")
+        plt.title("SVI Convergence")
+        plt.tight_layout()
+
+    return model.samples
+
+
 def evaluate(args, model, samples):
     # Print estimated values.
-    names = {"basic_reproduction_number": "R0",
-             "response_rate": "rho"}
+    names = {"basic_reproduction_number": "R0"}
+    if not args.heterogeneous:
+        names["response_rate"] = "rho"
     if args.concentration < math.inf:
         names["concentration"] = "k"
     if "od" in samples:
@@ -127,6 +158,8 @@ def evaluate(args, model, samples):
 
         # Plot individual histograms.
         fig, axes = plt.subplots(len(names), 1, figsize=(5, 2.5 * len(names)))
+        if len(names) == 1:
+            axes = [axes]
         axes[0].set_title("Posterior parameter estimates")
         for ax, (name, key) in zip(axes, names.items()):
             truth = getattr(args, name)
@@ -139,7 +172,7 @@ def evaluate(args, model, samples):
 
         # Plot pairwise joint distributions for selected variables.
         covariates = [(name, samples[name]) for name in names.values()]
-        for i, aux in enumerate(samples["auxiliary"].unbind(-2)):
+        for i, aux in enumerate(samples["auxiliary"].squeeze(1).unbind(-2)):
             covariates.append(("aux[{},0]".format(i), aux[:, 0]))
             covariates.append(("aux[{},-1]".format(i), aux[:, -1]))
         N = len(covariates)
@@ -162,9 +195,10 @@ def evaluate(args, model, samples):
             value = biject_to(constraint).inv(value)
             return value.reshape(args.num_samples, -1)
 
-        covariates = [
-            ("R1", unconstrain(constraints.positive, samples["R0"])),
-            ("rho", unconstrain(constraints.unit_interval, samples["rho"]))]
+        covariates = [("R1", unconstrain(constraints.positive, samples["R0"]))]
+        if not args.heterogeneous:
+            covariates.append(
+                ("rho", unconstrain(constraints.unit_interval, samples["rho"])))
         if "k" in samples:
             covariates.append(
                 ("k", unconstrain(constraints.positive, samples["k"])))
@@ -219,6 +253,25 @@ def predict(args, model, truth):
         plt.legend(loc="upper left")
         plt.tight_layout()
 
+        # Plot Re time series.
+        if args.heterogeneous:
+            plt.figure()
+            Re = samples["Re"]
+            median = Re.median(dim=0).values
+            p05 = Re.kthvalue(int(round(0.5 + 0.05 * args.num_samples)), dim=0).values
+            p95 = Re.kthvalue(int(round(0.5 + 0.95 * args.num_samples)), dim=0).values
+            plt.fill_between(time, p05, p95, color="red", alpha=0.3, label="90% CI")
+            plt.plot(time, median, "r-", label="median")
+            plt.plot(time[:args.duration], obs, "k.", label="observed")
+            plt.axvline(args.duration - 0.5, color="gray", lw=1)
+            plt.xlim(0, len(time) - 1)
+            plt.ylim(0, None)
+            plt.xlabel("day after first infection")
+            plt.ylabel("Re")
+            plt.title("Effective reproductive number over time")
+            plt.legend(loc="upper left")
+            plt.tight_layout()
+
 
 def main(args):
     pyro.enable_validation(__debug__)
@@ -230,6 +283,7 @@ def main(args):
 
     # Run inference.
     model = Model(args, obs)
+    infer = {"mcmc": infer_mcmc, "svi": infer_svi}[args.infer]
     samples = infer(args, model)
 
     # Evaluate fit.
@@ -257,24 +311,35 @@ if __name__ == "__main__":
                         help="If finite, use a superspreader model.")
     parser.add_argument("-rho", "--response-rate", default=0.5, type=float)
     parser.add_argument("-o", "--overdispersion", default=0., type=float)
+    parser.add_argument("-hg", "--heterogeneous", action="store_true")
+    parser.add_argument("--infer", default="mcmc")
+    parser.add_argument("--mcmc", action="store_const", const="mcmc", dest="infer")
+    parser.add_argument("--svi", action="store_const", const="svi", dest="infer")
     parser.add_argument("--haar", action="store_true")
     parser.add_argument("-hfm", "--haar-full-mass", default=0, type=int)
     parser.add_argument("-n", "--num-samples", default=200, type=int)
-    parser.add_argument("-np", "--num-particles", default=1024, type=int)
+    parser.add_argument("-np", "--smc-particles", default=1024, type=int)
+    parser.add_argument("-ss", "--svi-steps", default=5000, type=int)
+    parser.add_argument("-sp", "--svi-particles", default=32, type=int)
     parser.add_argument("-ess", "--ess-threshold", default=0.5, type=float)
-    parser.add_argument("-w", "--warmup-steps", default=100, type=int)
+    parser.add_argument("-w", "--warmup-steps", type=int)
+    parser.add_argument("-c", "--num-chains", default=1, type=int)
     parser.add_argument("-t", "--max-tree-depth", default=5, type=int)
     parser.add_argument("-a", "--arrowhead-mass", action="store_true")
     parser.add_argument("-r", "--rng-seed", default=0, type=int)
-    parser.add_argument("-nb", "--num-bins", default=4, type=int)
+    parser.add_argument("-nb", "--num-bins", default=1, type=int)
     parser.add_argument("--double", action="store_true", default=True)
     parser.add_argument("--single", action="store_false", dest="double")
     parser.add_argument("--cuda", action="store_true")
+    parser.add_argument("--jit", action="store_true", default=True)
+    parser.add_argument("--nojit", action="store_false", dest="jit")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--plot", action="store_true")
     args = parser.parse_args()
     args.population = int(args.population)  # to allow e.g. --population=1e6
 
+    if args.warmup_steps is None:
+        args.warmup_steps = args.num_samples
     if args.double:
         if args.cuda:
             torch.set_default_tensor_type(torch.cuda.DoubleTensor)
