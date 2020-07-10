@@ -236,6 +236,7 @@ class TransformTests(TestCase):
     def test_conditional_radial(self):
         self._test_conditional(T.conditional_radial, inverse=False)
 
+    @skipif_rocm
     def test_conditional_spline(self):
         for order in ['linear', 'quadratic']:
             self._test_conditional(partial(T.conditional_spline, order=order))
